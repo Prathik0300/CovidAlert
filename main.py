@@ -198,6 +198,10 @@ class User:
                     self.MutualContactList[key][MyPhoneNumber] = 1
             else:
                 self.MutualContactList[key] = {MyPhoneNumber:1}
+        pkl.dump(self.FriendSuggesterList,open(r"C:\college\Github\Covid Alert\FriendSuggesterList.pkl","wb"))
+        pkl.dump(self.MutualContactList,open(r"C:\college\Github\Covid Alert\MutualContactList.pkl","wb"))
+        self.FriendSuggesterList = pkl.load(open(r"C:\college\Github\Covid Alert\FriendSuggesterList.pkl","rb"))
+        self.MutualContactList =  pkl.load(open(r"C:\college\Github\Covid Alert\MutualContactList.pkl","rb"))
         self.NotifyUserAboutSuggestions(MyPhoneNumber)
     
     def NotifyUserAboutSuggestions(self,MyPhoneNumber):
@@ -225,14 +229,35 @@ class User:
                             self.FriendList[username] = {}
                             print(FriendUsername," successfully added as your friend!")
                             self.FriendList[username][FriendUsername] = 1
+                            
                     else:
                         pass
+                pkl.dump(self.FriendList,open(r"C:\college\Github\Covid Alert\FriendList.pkl","wb"))
                 self.FriendSuggesterList[MyPhoneNumber] = []
             else:
                 print("There are no Suggestion for you at present!")
         else:
-            print("No databse found!!")
+            print("There are no Suggestion for you at present!")
         return
+    
+    def NotifyUserAboutCovidAmongFriends(self,username):
+        try:
+            self.RegisteredUsersDB =  pkl.load(open(r"C:\college\Github\Covid Alert\RegisteredUsersDB.pkl","rb"))
+        except:
+            self.RegisteredUsersDB = None
+        if self.RegisteredUsersDB!=None:
+            AffectedFriends = []
+            if self.FriendList[username]:
+                for key,val in self.FriendList[username].items():
+                    if self.RegisteredUsersDB[key]["Covid"]==True:
+                        AffectedFriends.append(key)
+            for friend in AffectedFriends:
+                print(self.RegisteredUsersDB[friend]["FirstName"]," ",self.RegisteredUsersDB[friend]["LastName"]," one of your friends has been detected COVID positive")
+            else:
+                print("You dont have any friends. Add friend to check")
+        else:
+            print("There are no Users at present on this platform!!")
+            return 
 
 
 if __name__ == '__main__':
