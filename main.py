@@ -7,12 +7,14 @@ from google.auth.transport.requests import Request
 from collections import defaultdict
 import geocoder
 import re
+import time
 
 
 
 class User:
 
     def __init__(self,username=None,password=None):
+
         try:
             self.IndividualContactList = pkl.load(open(r"C:\college\Github_improvement\Covid Alert\IndividualContactList.pkl","rb"))
         except:
@@ -26,11 +28,11 @@ class User:
         except:
             self.MutualContactList = None
         try:
-            self.CentralPhoneDir = pkl.load(open(r"C:\college\Github_improve\Covid Alert\CentralPhoneDir.pkl","rb"))
+            self.CentralPhoneDir = pkl.load(open(r"C:\college\Github_improvement\Covid Alert\CentralPhoneDir.pkl","rb"))
         except:
             self.CentralPhoneDir = None
         try:
-            self.FriendList = pkl.load(open(r"C:\college\Github\Covid Alert\FriendList.pkl","rb"))
+            self.FriendList = pkl.load(open(r"C:\college\Github_improvement\Covid Alert\FriendList.pkl","rb"))
         except:
             self.FriendList = None
 
@@ -85,38 +87,26 @@ class User:
             password = input("Enter your password: ")
             passwordCheck = input("Enter your password again: ")
         covid = False
-        PhoneNo = int(input("Enter your Phone Number: "))
-        PhoneNo = str(abs(PhoneNo))
-        while(len(PhoneNo)<10):
+        PhoneNo = input("Enter your Phone Number: ")
+        while(re.match(r"^[1-9]{1}\d{9}$",PhoneNo)==None):
             print("Incorrect Phone Number entered!!")
-            PhoneNo = int(input("Enter your Phone Number: "))
-            PhoneNo = str(abs(PhoneNo))
+            PhoneNo = input("Enter your Phone Number: ")
 
         email = input("Enter your email id: ")
-        while(re.match(r'^[a-zA-Z0-9\.]@[a-z]\.[a-z]{2-3}$',email)==None):
-            print("Enter a valid Email ID!1")
+        while(re.match(r"^[a-z0-9]+([\.]\w)*[@]{1}[a-z]+[\.]{1}[a-z]{2,3}$",email)==None):
+            print("Enter a valid Email ID!")
             email = input("Enter your email id: ")
 
         dob = input("Enter your Date of birth(dd/mm/yyyy): ")
-        try:
-            dobData = dob.split("/")
-            while len(dobData)<3:
-                print("invalid Date of Birth format entered!!")
-                dob = input("Enter your Date of birth(dd/mm/yyyy): ")
-                dobData = dob.split("/")
-        except:
-            print("invalid Date of Birth format entered!!")
+        while( re.match(r"^(([0]{1}[1-9]{1}[\/]{1})|([1-2]{1}\d{1}[\/]{1})|([3]{1}[0-1]{1}[\/]{1}))(([0]{1}[1-9]{1}[\/]{1})|([1]{1}[0-2]{1}[\/]{1}))([1-9]{1}\d{3})$",dob)==None):
+            print("invalid Email Id! please enter valid ID!")
             dob = input("Enter your Date of birth(dd/mm/yyyy): ")
-            dobData = dob.split("/")
-            while len(dobData)<3:
-                print("invalid Date of Birth format entered!!")
-                dob = input("Enter your Date of birth(dd/mm/yyyy): ")
-                dobData = dob.split("/")
         ToBeSavedData = {"FirstName": FirstName,"LastName": LastName,"Location":[lat,lon],"Covid":covid,"PhoneNo":PhoneNo,"Email":email,"DOB":dob}
         if self.RegisteredUsersDB!=None:
             self.RegisteredUsersDB["Users"][username] = ToBeSavedData
         else:
-            final = {}
+            self.RegisteredUsersDB = {}
+            final={}
             final[username] = ToBeSavedData
             self.RegisteredUsersDB["Users"] = final
         pkl.dump(self.RegisteredUsersDB,open(r"C:\college\Github_improvement\Covid Alert\RegisteredUsersDB.pkl","wb"))
@@ -166,11 +156,9 @@ class User:
         for person in connections:
             
             names = person.get('names', [])
-            print(names)
             no = person.get('phoneNumbers', [])
             if names:
                 name = names[0].get('displayName')
-                print(name)
                 for numbers in no:
                     phoneDir[numbers['value']] = name
         if self.IndividualContactList!=None:
@@ -195,13 +183,15 @@ class User:
                             self.FriendSuggesterList[key].append(MyPhoneNumber)
                             self.FriendSuggesterList[MyPhoneNumber].append(key)
                 else:
+                    self.MutualContactList[key]={}
                     self.MutualContactList[key][MyPhoneNumber] = 1
             else:
+                self.MutualContactList = {}
                 self.MutualContactList[key] = {MyPhoneNumber:1}
-        pkl.dump(self.FriendSuggesterList,open(r"C:\college\Github\Covid Alert\FriendSuggesterList.pkl","wb"))
-        pkl.dump(self.MutualContactList,open(r"C:\college\Github\Covid Alert\MutualContactList.pkl","wb"))
-        self.FriendSuggesterList = pkl.load(open(r"C:\college\Github\Covid Alert\FriendSuggesterList.pkl","rb"))
-        self.MutualContactList =  pkl.load(open(r"C:\college\Github\Covid Alert\MutualContactList.pkl","rb"))
+        pkl.dump(self.FriendSuggesterList,open(r"C:\college\Github_improvement\Covid Alert\FriendSuggesterList.pkl","wb"))
+        pkl.dump(self.MutualContactList,open(r"C:\college\Github_improvement\Covid Alert\MutualContactList.pkl","wb"))
+        self.FriendSuggesterList = pkl.load(open(r"C:\college\Github_improvement\Covid Alert\FriendSuggesterList.pkl","rb"))
+        self.MutualContactList =  pkl.load(open(r"C:\college\Github_improvement\Covid Alert\MutualContactList.pkl","rb"))
         self.NotifyUserAboutSuggestions(MyPhoneNumber)
     
     def NotifyUserAboutSuggestions(self,MyPhoneNumber):
@@ -228,11 +218,10 @@ class User:
                             self.FriendList={}
                             self.FriendList[username] = {}
                             print(FriendUsername," successfully added as your friend!")
-                            self.FriendList[username][FriendUsername] = 1
-                            
+                            self.FriendList[username][FriendUsername] = 1     
                     else:
                         pass
-                pkl.dump(self.FriendList,open(r"C:\college\Github\Covid Alert\FriendList.pkl","wb"))
+                pkl.dump(self.FriendList,open(r"C:\college\Github_improvement\Covid Alert\FriendList.pkl","wb"))
                 self.FriendSuggesterList[MyPhoneNumber] = []
             else:
                 print("There are no Suggestion for you at present!")
@@ -242,7 +231,7 @@ class User:
     
     def NotifyUserAboutCovidAmongFriends(self,username):
         try:
-            self.RegisteredUsersDB =  pkl.load(open(r"C:\college\Github\Covid Alert\RegisteredUsersDB.pkl","rb"))
+            self.RegisteredUsersDB =  pkl.load(open(r"C:\college\Github_improvement\Covid Alert\RegisteredUsersDB.pkl","rb"))
         except:
             self.RegisteredUsersDB = None
         if self.RegisteredUsersDB!=None:
@@ -259,5 +248,6 @@ class User:
             print("There are no Users at present on this platform!!")
             return 
 
-
 if __name__ == '__main__':
+    User("prathik","pappu")
+
