@@ -8,6 +8,8 @@ from collections import defaultdict
 import geocoder
 import re
 import time
+import requests
+import multiprocessing as mp
 
 
 
@@ -35,8 +37,14 @@ class User:
             self.FriendList = pkl.load(open(r"C:\college\Github_improvement\Covid Alert\FriendList.pkl","rb"))
         except:
             self.FriendList = None
-
-        if username!=None and password!=None:
+        try:
+            self.UserCredentials = pkl.load(open(r"C:\college\Github_improvement\Covid Alert\UserCredentials.pkl","rb"))
+        except:
+            self.UserCredentials = None
+        print(self.UserCredentials)
+        if username==True and password==True:
+            pass
+        elif (username!=None and password!=None) and (username!=True and password!=True):
             self.username = username
             self.password = password
             try:
@@ -44,12 +52,14 @@ class User:
             except:
                 self.RegisteredUsersDB = None
             self.check()
+            print(self.RegisteredUsersDB)
         else:
-            print("The username or password is empty!")
+            print("Opening Sign Up page!")
+            self.register()
 
     def check(self):
-        if self.RegisteredUsersDB!=None:
-            if self.username in self.RegisteredUsersDB and self.RegisteredUsersDB[self.username]==self.password:
+        if self.UserCredentials!=None:
+            if self.username in self.UserCredentials and self.UserCredentials[self.username]==self.password:
                 print("Successfully Logged in!")
             else:
                 choice = input("Incorrect username or password!! Do you want to register?(y/n): ")
@@ -76,7 +86,7 @@ class User:
         LastName = input("Enter your last name: ")
         username = input("Enter your username: ")
         if self.RegisteredUsersDB!=None:
-            while username in self.RegisteredUsersDB['Users']:
+            while username in self.RegisteredUsersDB:
                 print("The username is already registered! enter a different username!")
                 username = input("Enter your username: ")
         lat,lon = self.FindLocation()
@@ -103,12 +113,10 @@ class User:
             dob = input("Enter your Date of birth(dd/mm/yyyy): ")
         ToBeSavedData = {"FirstName": FirstName,"LastName": LastName,"Location":[lat,lon],"Covid":covid,"PhoneNo":PhoneNo,"Email":email,"DOB":dob}
         if self.RegisteredUsersDB!=None:
-            self.RegisteredUsersDB["Users"][username] = ToBeSavedData
+            self.RegisteredUsersDB[username] = ToBeSavedData
         else:
             self.RegisteredUsersDB = {}
-            final={}
-            final[username] = ToBeSavedData
-            self.RegisteredUsersDB["Users"] = final
+            self.RegisteredUsersDB[username] = ToBeSavedData
         pkl.dump(self.RegisteredUsersDB,open(r"C:\college\Github_improvement\Covid Alert\RegisteredUsersDB.pkl","wb"))
         self.RegisteredUsersDB = pkl.load(open(r"C:\college\Github_improvement\Covid Alert\RegisteredUsersDB.pkl","rb"))
         if self.CentralPhoneDir!=None:
@@ -116,6 +124,15 @@ class User:
         else:
             self.CentralPhoneDir = {}
             self.CentralPhoneDir[PhoneNo] = username
+        if self.UserCredentials!=None:
+            self.UserCredentials[username] = password
+        else:
+            self.UserCredentials = {}
+            self.UserCredentials[username] = password
+        pkl.dump(self.UserCredentials,open(r"C:\college\Github_improvement\Covid Alert\UserCredentials.pkl","wb"))
+        pkl.dump(self.CentralPhoneDir,open(r"C:\college\Github_improvement\Covid Alert\CentralPhoneDir.pkl","wb"))
+        self.CentralPhoneDir = pkl.load(open(r"C:\college\Github_improvement\Covid Alert\CentralPhoneDir.pkl","rb"))
+        self.UserCredentials = pkl.load(open(r"C:\college\Github_improvement\Covid Alert\UserCredentials.pkl","rb"))
         self.GetContacts(PhoneNo)
 
 # If modifying these scopes, delete the file token.pickle.
@@ -248,6 +265,45 @@ class User:
             print("There are no Users at present on this platform!!")
             return 
 
+    def GivingAlertToNearbyHospitals(self):
+        api = 'AIzaSyAe9jJPBAmcSDeVDAueA9kPfViWb7tv4tk'
+        lat,lon = self.FindLocation()
+        query = "hospitals+near+me"
+        url = 'https://maps.googleapis.com/maps/api/place/textsearch/json?'
+        r = requests.get(url+'query='+'medical stores near me'+'&key='+api)
+        x = r.json() 
+        y = x['results'] 
+
+
 if __name__ == '__main__':
-    User("prathik","pappu")
+
+    def GetLocation(loc,status):
+        stat = status.recv()
+        user = User(True,True)
+        while(stat):
+            loc.send([user.FindLocation()])
+            time.sleep(30)
+            stat = status.recv()
+        loc.close()
+    def Functions(obj):
+        pass
+    def UserFunctions():     
+        func,loc = mp.Pipe()
+        OutStatus,InStatus = mp.Pipe()
+        p2 = mp.Process(target=Functions,args=(OutStatus,func,)).start()
+        p1 = mp.Process(target=GetLocation,args=(loc,InStatus,)).start()
+        p2.join()
+        p1.join()
+        print("Inside Function")
+
+
+
+    choice = input("Are you new to the platform? (y/n): ")
+    if choice.lower()=="yes" or choice.lower()=="y":
+        User()
+    else:
+        username = input("Enter your username: ")
+        password = input("Enter your password: ")
+        User(username,password)
+        UserFunctions()
 
