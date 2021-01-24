@@ -277,24 +277,7 @@ class User:
 
 if __name__ == '__main__':
 
-    def GetLocation(loc,status):
-        stat = status.recv()
-        user = User(True,True)
-        while(stat):
-            loc.send([user.FindLocation()])
-            time.sleep(30)
-            stat = status.recv()
-        loc.close()
-    def Functions(obj):
-        pass
-    def UserFunctions():     
-        func,loc = mp.Pipe()
-        OutStatus,InStatus = mp.Pipe()
-        p2 = mp.Process(target=Functions,args=(OutStatus,func,)).start()
-        p1 = mp.Process(target=GetLocation,args=(loc,InStatus,)).start()
-        p2.join()
-        p1.join()
-        print("Inside Function")
+
 
 
 
@@ -305,5 +288,4 @@ if __name__ == '__main__':
         username = input("Enter your username: ")
         password = input("Enter your password: ")
         User(username,password)
-        UserFunctions()
 
