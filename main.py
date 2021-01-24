@@ -41,18 +41,19 @@ class User:
             self.UserCredentials = pkl.load(open(r"C:\college\Github_improvement\Covid Alert\UserCredentials.pkl","rb"))
         except:
             self.UserCredentials = None
-        print(self.UserCredentials)
+        try:
+            self.RegisteredUsersDB = pkl.load(open(r"C:\college\Github_improvement\Covid Alert\RegisteredUsersDB.pkl","rb"))
+        except:
+            self.RegisteredUsersDB = None
+        #print(self.UserCredentials)
+        #print(self.RegisteredUsersDB)
         if username==True and password==True:
             pass
         elif (username!=None and password!=None) and (username!=True and password!=True):
             self.username = username
             self.password = password
-            try:
-                self.RegisteredUsersDB = pkl.load(open(r"C:\college\Github_improvement\Covid Alert\RegisteredUsersDB.pkl","rb"))
-            except:
-                self.RegisteredUsersDB = None
             self.check()
-            print(self.RegisteredUsersDB)
+            #print(self.RegisteredUsersDB)
         else:
             print("Opening Sign Up page!")
             self.register()
@@ -276,10 +277,6 @@ class User:
 
 
 if __name__ == '__main__':
-
-
-
-
 
     choice = input("Are you new to the platform? (y/n): ")
     if choice.lower()=="yes" or choice.lower()=="y":
